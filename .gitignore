@@ -3,3 +3,4 @@ dist/
 src/logodata.js
 src/photodata.js
 src/posterdata.js
+src/spritedata.js

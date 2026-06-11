@@ -6,7 +6,7 @@ import { buildWorld, wireUI } from './world.js';
 import { ensureLogoReady } from './textures.js';
 import { buildTrophyRoom, runReveal, startConfetti } from './trophy.js';
 import { initControls, updatePlayer, lockPointer } from './player.js';
-import { initUI, toast, dialog, prompt, refreshKeys, tickHUD, setLoadProgress, showContinue, showWin } from './ui.js';
+import { initUI, toast, dialog, prompt, refreshKeys, tickHUD, setLoadProgress, showContinue, showWin, showYenFound } from './ui.js';
 import { initPuzzles } from './puzzles.js';
 import { initHoop, initSnake, updateGames, tryThrow, holdingBall } from './games.js';
 import { sfx, audioInit } from './audio.js';
@@ -37,6 +37,7 @@ async function boot() {
   setLoadProgress(0.9); await raf();
   initUI({ onStart: start });
   G.toast = toast;
+  G.showYenFound = showYenFound;
   applyTier(); // đồng bộ đèn/bóng đổ với mức đồ hoạ sau khi đã dựng xong world
   if (hasSave) showContinue();
   refreshKeys();

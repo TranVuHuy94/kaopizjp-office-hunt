@@ -28,7 +28,7 @@ if (existsSync('assets/favicon.svg')) {
 }
 // ---- Logo 10 năm gốc (nếu được cung cấp) — build tự nhúng, game tự ưu tiên dùng
 let logo10Line = 'export const LOGO10_B64 = null;\n';
-for (const f of ['assets/logo/logo 10 nam.svg', 'assets/logo/logo 10 năm.svg', 'assets/logo10.svg',
+for (const f of ['assets/logo/logo 10 nam (xanh).png', 'assets/logo/logo 10 nam.svg', 'assets/logo/logo 10 năm.svg', 'assets/logo10.svg',
   'assets/logo/logo 10 nam.png', 'assets/logo/logo 10 năm.png', 'assets/logo10.png']) {
   if (!existsSync(f)) continue;
   if (f.endsWith('.svg')) {
@@ -56,6 +56,19 @@ if (existsSync('assets/posters')) {
   console.log('poster thật:', Object.keys(posters).join(', ') || '(không có)');
 }
 writeFileSync('src/posterdata.js', '// File tự sinh bởi build.mjs — đừng sửa tay\nexport const POSTER_B64 = ' + JSON.stringify(posters) + ';\n');
+
+// ---- Sprite linh vật (assets/sprites/*) → nhân vật/standee trong game
+const sprites = {};
+if (existsSync('assets/sprites')) {
+  for (const f of readdirSync('assets/sprites').sort()) {
+    const ext = f.slice(f.lastIndexOf('.')).toLowerCase();
+    const mime = { '.png': 'image/png', '.webp': 'image/webp' }[ext];
+    if (!mime) continue;
+    sprites[f.slice(0, f.lastIndexOf('.'))] = `data:${mime};base64,${readFileSync(`assets/sprites/${f}`).toString('base64')}`;
+  }
+  console.log('sprite:', Object.keys(sprites).join(', ') || '(không có)');
+}
+writeFileSync('src/spritedata.js', '// File tự sinh bởi build.mjs — đừng sửa tay\nexport const SPRITE_B64 = ' + JSON.stringify(sprites) + ';\n');
 
 // ---- Ảnh thật văn phòng (assets/photos/*) → hiện ở màn hình thắng cuộc
 const CAPS = {

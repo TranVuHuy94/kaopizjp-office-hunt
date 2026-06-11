@@ -59,6 +59,7 @@ for (const fn of ['woodTex', 'ceilingSlats', 'carpetTex', 'terrazzoTex', 'concre
 }
 await t('skylineTex day/night', () => { TX.skylineTex(false); TX.skylineTex(true); });
 await t('certSmall 3 mẫu', () => { TX.certSmall(0); TX.certSmall(1); TX.certSmall(2); });
+await t('yenNote', () => TX.yenNote());
 await t('logoCanvas', () => TX.logoCanvas(520, 180, '#fff', 'sub'));
 await t('signTex', () => TX.signTex('XYZ', { sub: 'abc' }));
 await t('noteTex', () => TX.noteTex(['a', 'b', 'c']));

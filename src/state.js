@@ -16,7 +16,7 @@ export const G = {
   state: 'intro',       // intro | play | dialog | win
   startT: 0, elapsed: 0, timerOn: false,
   keys: { bronze: false, silver: false, gold: false },
-  flags: { boxMoved: false, doorOpen: false, won: false, coffee: 0 },
+  flags: { boxMoved: false, doorOpen: false, won: false, coffee: 0, yen: false },
   hintsUnlocked: 0, hintsRead: 0,
   tier: 0,                // 0 cao · 1 vừa · 2 thấp
   qualityMode: 'auto',    // auto | manual
@@ -30,7 +30,7 @@ const SK = 'kaopizHunt_v1';
 export function save() {
   try {
     localStorage.setItem(SK, JSON.stringify({
-      keys: G.keys, flags: { boxMoved: G.flags.boxMoved, doorOpen: G.flags.doorOpen, won: G.flags.won, coffee: G.flags.coffee },
+      keys: G.keys, flags: { boxMoved: G.flags.boxMoved, doorOpen: G.flags.doorOpen, won: G.flags.won, coffee: G.flags.coffee, yen: G.flags.yen },
       elapsed: G.elapsed, muted: G.muted, tier: G.tier, qualityMode: G.qualityMode,
       snakeBest: G.snakeBest | 0, hoopBest: G.hoopBest | 0,
     }));
