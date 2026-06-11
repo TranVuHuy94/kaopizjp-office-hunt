@@ -25,37 +25,55 @@ export function rr(g, x, y, w, h, r) {
   g.closePath();
 }
 
-// ---- LOGO KAOPIZ ----
-// Ưu tiên dùng ảnh logo GỐC (nhúng base64 lúc build); chưa có ảnh thì vẽ vector mô phỏng.
-import { LOGO_B64 } from './logodata.js';
-let logoImg = null;          // HTMLImageElement đã decode
-const tintCache = new Map(); // màu → canvas logo đã nhuộm
+// ---- LOGO & ẢNH NHÚNG ----
+// Ưu tiên ảnh GỐC nhúng lúc build (SVG/PNG/JPG); thiếu thì vẽ vector mô phỏng.
+import { LOGO_B64, MARK_B64, LOGO10_B64 } from './logodata.js';
+import { POSTER_B64 } from './posterdata.js';
+let logoImg = null, markImg = null, logo10Img = null; // HTMLImageElement đã decode
+const posterCv = new Map();   // tên poster → canvas
+const tintCaches = new Map(); // ảnh → Map(màu → canvas đã nhuộm)
 
-export function ensureLogoReady() {
-  if (!LOGO_B64) return Promise.resolve();
-  return new Promise((res) => {
-    const im = new Image();
-    im.onload = () => { logoImg = im; res(); };
-    im.onerror = () => res(); // hỏng thì rơi về vector
-    im.src = LOGO_B64;
-  });
+const loadImg = (src) => new Promise((res) => {
+  if (!src) return res(null);
+  const im = new Image();
+  im.onload = () => res(im);
+  im.onerror = () => res(null); // hỏng thì rơi về vector
+  im.src = src;
+});
+export async function ensureLogoReady() {
+  [logoImg, markImg, logo10Img] = await Promise.all([
+    loadImg(LOGO_B64), loadImg(MARK_B64), loadImg(LOGO10_B64),
+  ]);
+  await Promise.all(Object.entries(POSTER_B64).map(async ([k, v]) => {
+    const im = await loadImg(v);
+    if (!im) return;
+    const c = document.createElement('canvas');
+    c.width = im.naturalWidth; c.height = im.naturalHeight;
+    c.getContext('2d').drawImage(im, 0, 0);
+    posterCv.set(k, c);
+  }));
 }
-function tintedLogo(color) {
+// canvas của poster ảnh thật (null nếu không có)
+export function posterCanvas(name) { return posterCv.get(name) || null; }
+function tintImg(img, color) {
   // color === null → giữ nguyên màu gốc của ảnh
+  let cache = tintCaches.get(img);
+  if (!cache) tintCaches.set(img, cache = new Map());
   const key = color || '__orig';
-  if (tintCache.has(key)) return tintCache.get(key);
+  if (cache.has(key)) return cache.get(key);
   const c = document.createElement('canvas');
-  c.width = logoImg.naturalWidth; c.height = logoImg.naturalHeight;
+  c.width = img.naturalWidth; c.height = img.naturalHeight;
   const g = c.getContext('2d');
-  g.drawImage(logoImg, 0, 0);
+  g.drawImage(img, 0, 0);
   if (color) {
     g.globalCompositeOperation = 'source-in';
     g.fillStyle = color;
     g.fillRect(0, 0, c.width, c.height);
   }
-  tintCache.set(key, c);
+  cache.set(key, c);
   return c;
 }
+const tintedLogo = (color) => tintImg(logoImg, color);
 export function drawLogo(g, cx, cy, size, color = KBLUE, sub = '') {
   if (logoImg) {
     // size ≈ chiều cao phần chữ k → ảnh gốc cao hơn chút (descender của p/z)
@@ -117,8 +135,37 @@ function drawLogoVector(g, cx, cy, size, color = KBLUE, sub = '') {
   }
   g.restore();
 }
-// logo kỷ niệm "10" + kaopiz
+// logo kỷ niệm 10 năm: ưu tiên ảnh gốc (assets/logo/logo 10 nam.*) → ghép từ
+// icon K + wordmark thật (đúng thiết kế "1 + icon = 10" chính thức) → vẽ tay
 export function drawLogo10(g, cx, cy, size, color = KBLUE) {
+  if (logo10Img) {
+    const h = size * 1.5;
+    const w = h * (logo10Img.naturalWidth / logo10Img.naturalHeight);
+    g.drawImage((color === KBLUE) ? tintImg(logo10Img, null) : tintImg(logo10Img, color),
+      cx - w / 2, cy - h / 2, w, h);
+    return;
+  }
+  if (markImg && logoImg) {
+    g.save();
+    g.font = `800 ${size * 1.18}px 'Segoe UI', Arial, sans-serif`;
+    const w1 = g.measureText('1').width;
+    const ringD = size * 1.06;
+    const wmH = size * 0.56;
+    const wmW = wmH * (logoImg.naturalWidth / logoImg.naturalHeight);
+    const gap1 = size * 0.02, gap2 = size * 0.17;
+    let x = cx - (w1 + gap1 + ringD + gap2 + wmW) / 2;
+    g.fillStyle = color;
+    g.textAlign = 'left'; g.textBaseline = 'middle';
+    g.fillText('1', x, cy + size * 0.02);
+    x += w1 + gap1;
+    g.drawImage((color === KBLUE) ? tintImg(markImg, null) : tintImg(markImg, color),
+      x, cy - ringD / 2, ringD, ringD);
+    x += ringD + gap2;
+    g.drawImage((color === KBLUE) ? tintImg(logoImg, null) : tintImg(logoImg, color),
+      x, cy - wmH / 2, wmW, wmH);
+    g.restore();
+    return;
+  }
   g.save();
   g.translate(cx, cy);
   g.font = `800 ${size}px 'Segoe UI', Arial, sans-serif`;
