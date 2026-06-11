@@ -1,5 +1,11 @@
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, statSync, existsSync, readdirSync } from 'fs';
+import { execSync } from 'child_process';
+
+// ---- OG preview image (PNG từ logo.svg — Facebook/Teams không hỗ trợ SVG)
+if (existsSync('assets/logo.svg')) {
+  execSync('node scripts/gen-og-image.mjs', { stdio: 'inherit' });
+}
 
 // ---- Logo: ưu tiên SVG vector (assets/logo.svg) — nhúng thẳng, sắc nét mọi kích cỡ.
 // Chưa có SVG thì rơi về PNG/WebP nhúng base64.
