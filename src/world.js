@@ -472,6 +472,12 @@ function buildF1(m) {
   plane(1.5, 2.1, basicMat(TX.posterOpenCup()), 0.12, y + 1.75, 8.6, Math.PI / 2);
   inter(0.5, y + 1.6, 8.6, 1.6, '⚽ Poster Kaopiz Open Cup 2026', () => toast('⚽ Kaopiz Open Cup 2026 — giải đấu huyền thoại kỷ niệm 10 năm. Phần thưởng vô địch nghe nói "xịn" lắm… mà giờ nó ở đâu? 🤔'));
   plane(1.5, 2.1, basicMat(TX.poster10y()), 0.12, y + 1.75, 14.4, Math.PI / 2);
+  const hk1 = TX.posterCanvas('ai-hackathon-2026');
+  if (hk1) {
+    plane(1.45, 1.9, basicMat(hk1), 0.12, y + 1.7, 17.2, Math.PI / 2);
+    inter(0.5, y + 1.6, 17.2, 1.6, '🤖 Poster AI Hackathon 2026', () =>
+      toast('🤖 AI HACKATHON 2026 — 27/06 · 6 teams · "Apply AI to solve a problem in software development". This year, YOUR CHALLENGE will shape the future! 😉'));
+  }
   noteSpot(3.8, y + 0.765, 11.0, 'Mẩu giấy trên bàn trà', [
     'Gửi người tò mò:', '', '"Thứ quý giá nhất Kaopiz', 'không nằm trong két sắt."', '', '— Người Giấu Đồ 🕵️',
   ], 0.4);
@@ -730,6 +736,12 @@ function buildF3(m) {
   mkPlanter(m, 0.4, 12.9, 2.2, 13.5, y);
   mkPottedPlant(m, 0.7, 19.2, y, true);
   plane(2.2, 0.55, basicMat(TX.signTex('BOD ZONE ✦', { size: 30, sub: 'khu vực các sếp — đi nhẹ nói khẽ cười duyên', bg: '#0a1626', fg: '#ffd34d' })), 6, y + 2.62, 0.28);
+  const hk3 = TX.posterCanvas('ai-hackathon-2026');
+  if (hk3) {
+    plane(1.45, 1.9, basicMat(hk3), 11.2, y + 1.78, 0.28);
+    inter(11.2, y + 1.6, 0.7, 1.6, '🤖 Poster AI Hackathon 2026', () =>
+      toast('🤖 Sếp nào cũng đã đăng ký AI Hackathon 2026 (27/06) — nghe nói đội thắng được thưởng "một thứ" hiện đang bị giấu đâu đó 👀'));
+  }
 
   // --- lounge BOD + 3 bức tranh ---
   mkSofaSeg(m, 9.8, 18.7, Math.PI, y, 1.0, true);

@@ -2,3 +2,4 @@ node_modules/
 dist/
 src/logodata.js
 src/photodata.js
+src/posterdata.js

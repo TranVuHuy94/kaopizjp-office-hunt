@@ -108,6 +108,24 @@ function openHints() {
   $('dlgOk').onclick = () => closeDialog();
 }
 
+// ---------- bảng hướng dẫn điều khiển (nút ⌨ trên HUD) ----------
+function showControlsHelp() {
+  if (G.state !== 'play') return;
+  sfx.click && sfx.click();
+  const desk = `<p style="line-height:2.2">
+    <span class="kbd">W</span><span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span> di chuyển ·
+    <b>chuột</b> nhìn quanh · <span class="kbd">Shift</span> chạy nhanh<br>
+    <span class="kbd">E</span> / <b>chuột trái</b> tương tác với vật có nhãn sáng<br>
+    <span class="kbd">H</span> gợi ý · <span class="kbd">M</span> âm thanh ·
+    <span class="kbd">F1</span> bảng này · <span class="kbd">Esc</span> hiện con trỏ để bấm nút góc phải</p>`;
+  const touch = `<p style="line-height:2">🕹 <b>Joystick trái</b>: di chuyển · <b>vuốt nửa phải màn hình</b>: nhìn quanh<br>
+    👆 nút tương tác · 🏃 chạy nhanh</p>`;
+  openDialog(`<h2>⌨ Điều khiển</h2>${G.isTouch ? touch : desk}
+    <p style="opacity:.75;font-size:13px;margin-top:6px">Mục tiêu: tìm và giải <b>3 thử thách IQ</b> để lấy chìa 🥇🥈🥉 → mở cánh cửa thép trong <b>kho tầng 3</b>.</p>
+    <div class="dlgRow"><button class="btn primary" id="dlgOk">Đã hiểu</button></div>`);
+  $('dlgOk').onclick = () => { sfx.click(); closeDialog(); };
+}
+
 // ---------- khởi tạo ----------
 export function initUI({ onStart, onReset }) {
   toastBox = $('toast'); promptEl = $('prompt');
@@ -131,12 +149,14 @@ export function initUI({ onStart, onReset }) {
   });
   $('btnMenu').addEventListener('click', () => G.pauseRequest());
   $('btnHint').addEventListener('click', openHints);
+  $('btnHelp').addEventListener('click', showControlsHelp);
 
   // phím tắt khi đang chơi (dùng được cả lúc chuột bị khoá)
   addEventListener('keydown', (e) => {
     if (G.state !== 'play') return;
     if (e.code === 'KeyH') openHints();
     if (e.code === 'KeyM') toggleSound();
+    if (e.code === 'F1' || e.code === 'Slash') { e.preventDefault(); showControlsHelp(); }
   });
   // thoát pointer lock (Esc) → không pause, chỉ nhắc cách dùng
   let unlockNotes = 0;
