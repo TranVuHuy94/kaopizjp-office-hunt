@@ -9,12 +9,10 @@ mở bằng trình duyệt là chơi (PC + điện thoại đều được).
 
 ## 🎮 Chơi ngay
 
-Bật GitHub Pages cho repo này (Settings → Pages → *Deploy from a branch* → `main` / `/ (root)`),
-sau ~1 phút game sống tại:
-
 **https://tranvuhuy94.github.io/kaopizjp-office-hunt/**
 
-Hoặc tải file `index.html` về mở trực tiếp — game chạy offline hoàn toàn.
+Mỗi lần push lên `main`, workflow [`pages.yml`](.github/workflows/pages.yml) tự deploy
+bản mới lên GitHub Pages. Hoặc tải file `index.html` về mở trực tiếp — game chạy offline hoàn toàn.
 
 ## 🗺 Có gì trong văn phòng 3D
 
