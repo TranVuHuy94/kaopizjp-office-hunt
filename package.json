@@ -1,0 +1,22 @@
+{
+  "name": "kaopiz-office-hunt",
+  "version": "1.0.0",
+  "description": "Kaopiz Secret Office — game truy tìm báu vật 3D trong 1 file HTML",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node test-smoke.mjs && node test-world.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "esbuild": "^0.28.0",
+    "playwright-core": "^1.60.0",
+    "three": "^0.184.0"
+  },
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "potrace": "^2.1.8"
+  }
+}
