@@ -490,6 +490,42 @@ export const STAFF_F1 = [
   { plate: 'Loan', scr: 'flights', anim: false },
 ];
 
+// ===== popup "rất văn phòng" đè lên mọi màn hình (mỗi máy một kiểu khổ) =====
+const OS_POPUPS = [
+  '🪫 Pin chuột còn 1% — và động lực cũng vậy',
+  '⚠ RAM 99% — 87 tab Chrome đang gào thét',
+  '📢 HR: ai ăn sữa chua trong tủ lạnh chung, tự giác nhé!',
+  '🔄 Windows Update: Cài ngay / Sau deadline (đã hoãn 47 lần)',
+  '🔐 Mật khẩu hết hạn từ 2019 — hệ thống đã bỏ cuộc',
+  '📅 Mời họp "ngắn thôi" lúc 16:55 (dự kiến 2 tiếng)',
+  '💬 Sếp: "em rảnh không, qua phòng anh tí" 😨',
+  '🧾 Kế toán: nộp hoá đơn trà sữa để hoàn ứng (nhắc lần 3)',
+  '🐜 Kari: deadline AI Hackathon 27/06 đó nha!!',
+  '☕ Cảnh báo y tế: nồng độ cà phê trong máu quá thấp',
+  '📶 WiFi yếu — thử đứng gần cửa sổ và cầu nguyện',
+  '🖨 Máy in tầng 3 kẹt giấy (lần thứ 9 trong hôm nay)',
+  '💾 Ổ C còn 217MB — đừng đổ lỗi cho node_modules nữa',
+  '🔔 Standup 9:00: "hôm qua em làm gì ấy nhỉ…"',
+];
+function osPopup(g, t, seed) {
+  const cycle = (t / 9) | 0;
+  const phase = t % 9;
+  if (t > 0 && phase > 5.5) return; // màn hình động: hiện 5.5s mỗi 9s
+  const msg = OS_POPUPS[(seed + cycle) % OS_POPUPS.length];
+  const slide = t > 0 ? Math.min(1, phase * 3) : 1; // trượt vào
+  g.save();
+  g.font = '600 11.5px "Segoe UI"'; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  const w = Math.min(458, g.measureText(msg).width + 38);
+  const x = 480 - w - 8 + (1 - slide) * (w + 20), y = 226;
+  g.fillStyle = 'rgba(18,22,30,.92)'; rr(g, x, y, w, 32, 8); g.fill();
+  g.strokeStyle = 'rgba(124,195,242,.5)'; g.lineWidth = 1; rr(g, x, y, w, 32, 8); g.stroke();
+  g.fillStyle = '#eaf2fa'; g.fillText(msg, x + 12, y + 20);
+  g.fillStyle = '#7c8794'; g.font = '700 10px "Segoe UI"';
+  g.fillText('✕', x + w - 14, y + 13);
+  g.restore();
+}
+const seedOf = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 9973; return h; };
+
 // vẽ màn hình của một người vào canvas
 export function drawScreen(person, g, t) {
   const p = painters[person.scr] || screensaver;
@@ -497,6 +533,7 @@ export function drawScreen(person, g, t) {
   g.textAlign = 'left'; g.textBaseline = 'alphabetic';
   p(g, t, person.a || {});
   g.restore();
+  osPopup(g, t, seedOf(person.plate || ''));
 }
 function screensaver(g, t) {
   g.fillStyle = '#04101d'; g.fillRect(0, 0, 480, 300);

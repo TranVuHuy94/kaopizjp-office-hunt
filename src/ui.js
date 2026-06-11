@@ -3,7 +3,7 @@ import { G, $, save, wipe, keyCount } from './state.js';
 import { audioInit, setMuted, sfx } from './audio.js';
 import { lockPointer } from './player.js';
 import { cycleTier, TIER_LABEL } from './engine.js';
-import { logoCanvas } from './textures.js';
+import { logoCanvas, yenNote } from './textures.js';
 import { PHOTOS } from './photodata.js';
 
 const HINTS = [
@@ -104,8 +104,27 @@ function openHints() {
       ${list.map(h => `<li>${h[1]}</li>`).join('')}
     </ol>
     ${lockedNext !== null ? `<p style="margin-top:12px;opacity:.65">🔒 Gợi ý tiếp theo mở ở phút ${Math.ceil(lockedNext / 60)}.</p>` : ''}
+    <p style="margin-top:14px;font-size:13px;line-height:1.7;background:rgba(255,211,77,.07);border:1px dashed rgba(255,211,77,.45);border-radius:10px;padding:10px 13px">
+      💴 <b>Tin đồn 10.000¥</b> <span style="opacity:.6">(không có gợi ý thêm — dành cho IQ thượng thừa)</span>:<br>
+      <i>«Giữa một rừng xác cây phủ đầy chữ, kẻ duy nhất chưa từng được thở đang gối đầu lên kho báu.
+      Lớp da trong suốt của nó là chiếc két sắt bền nhất văn phòng — bởi ở xứ này,
+      sự sạch sẽ là một loại giàu có.»</i></p>
     <div class="dlgRow"><button class="btn primary" id="dlgOk">Tiếp tục tìm</button></div>`);
   $('dlgOk').onclick = () => closeDialog();
+}
+
+// ---------- giải thưởng 10.000¥ giấu trong «Clean Code» ----------
+export function showYenFound() {
+  G.flags.yen = true;
+  save();
+  sfx.fanfare ? sfx.fanfare() : sfx.click();
+  openDialog(`<h2>💴 BÓC TRÚNG 10.000¥!</h2>
+    <p>Bạn xé lớp màng bọc cuốn <b>«Clean Code»</b> chưa ai từng mở… và một tờ
+    <b>10.000 yên</b> rơi ra! Hoá ra <i>"sự sạch sẽ là một loại giàu có"</i> — theo nghĩa đen.</p>
+    <img src="${yenNote().toDataURL()}" alt="10.000 yên" style="width:100%;border-radius:10px;margin-top:8px;border:1px solid rgba(124,195,242,.4)">
+    <p style="opacity:.75;font-size:12.5px;margin-top:8px">Giải mã được tin đồn này, IQ của bạn miễn bàn 🧠 — nhận thưởng thật tại BTC sự kiện nhé!</p>
+    <div class="dlgRow"><button class="btn primary" id="dlgOk">Cất ví 💴</button></div>`);
+  $('dlgOk').onclick = () => { sfx.click(); closeDialog(); };
 }
 
 // ---------- bảng hướng dẫn điều khiển (nút ⌨ trên HUD) ----------
@@ -214,7 +233,8 @@ export function fade(cb, t1 = 420, t2 = 420) {
   }, t1 + 40);
 }
 export function showWin() {
-  $('winTime').textContent = '⏱ Thời gian truy tìm: ' + fmt(G.elapsed) + (G.flags.coffee ? ` · ☕ x${G.flags.coffee}` : '');
+  $('winTime').textContent = '⏱ Thời gian truy tìm: ' + fmt(G.elapsed)
+    + (G.flags.coffee ? ` · ☕ x${G.flags.coffee}` : '') + (G.flags.yen ? ' · 💴 10.000¥' : '');
   // ảnh thật khu giải thưởng (nhúng lúc build) — phần thưởng tinh thần sau khi thắng
   if (PHOTOS.length && !$('winPhotosRow').children.length) {
     $('winPhotosRow').innerHTML = PHOTOS.map(p =>

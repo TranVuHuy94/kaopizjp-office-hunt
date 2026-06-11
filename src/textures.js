@@ -29,8 +29,10 @@ export function rr(g, x, y, w, h, r) {
 // Ưu tiên ảnh GỐC nhúng lúc build (SVG/PNG/JPG); thiếu thì vẽ vector mô phỏng.
 import { LOGO_B64, MARK_B64, LOGO10_B64 } from './logodata.js';
 import { POSTER_B64 } from './posterdata.js';
+import { SPRITE_B64 } from './spritedata.js';
 let logoImg = null, markImg = null, logo10Img = null; // HTMLImageElement đã decode
 const posterCv = new Map();   // tên poster → canvas
+const spriteCv = new Map();   // tên sprite → canvas (giữ alpha)
 const tintCaches = new Map(); // ảnh → Map(màu → canvas đã nhuộm)
 
 const loadImg = (src) => new Promise((res) => {
@@ -44,17 +46,22 @@ export async function ensureLogoReady() {
   [logoImg, markImg, logo10Img] = await Promise.all([
     loadImg(LOGO_B64), loadImg(MARK_B64), loadImg(LOGO10_B64),
   ]);
-  await Promise.all(Object.entries(POSTER_B64).map(async ([k, v]) => {
+  const toCv = async (v) => {
     const im = await loadImg(v);
-    if (!im) return;
+    if (!im) return null;
     const c = document.createElement('canvas');
     c.width = im.naturalWidth; c.height = im.naturalHeight;
     c.getContext('2d').drawImage(im, 0, 0);
-    posterCv.set(k, c);
-  }));
+    return c;
+  };
+  await Promise.all([
+    ...Object.entries(POSTER_B64).map(async ([k, v]) => { const c = await toCv(v); if (c) posterCv.set(k, c); }),
+    ...Object.entries(SPRITE_B64).map(async ([k, v]) => { const c = await toCv(v); if (c) spriteCv.set(k, c); }),
+  ]);
 }
-// canvas của poster ảnh thật (null nếu không có)
+// canvas của poster/sprite ảnh thật (null nếu không có)
 export function posterCanvas(name) { return posterCv.get(name) || null; }
+export function spriteCanvas(name) { return spriteCv.get(name) || null; }
 function tintImg(img, color) {
   // color === null → giữ nguyên màu gốc của ảnh
   let cache = tintCaches.get(img);
@@ -703,6 +710,58 @@ export function posterKeizai() {
   g.fillStyle = '#c8102e'; g.font = "700 21px 'Yu Gothic','Segoe UI'";
   g.fillText('雑誌「経済界」総力特集全31頁 · 3月23日(月)発売 — KEIZAIKAI', 420, 410);
   g.textAlign = 'left';
+  return c;
+}
+// tờ 10.000¥ "Ngân hàng Kaopiz" — giải thưởng giấu kín cho người IQ cao
+export function yenNote() {
+  const [c, g] = C(580, 270);
+  const bg = g.createLinearGradient(0, 0, 580, 270);
+  bg.addColorStop(0, '#eef3e9'); bg.addColorStop(0.5, '#e7eef4'); bg.addColorStop(1, '#ece9df');
+  g.fillStyle = bg; g.fillRect(0, 0, 580, 270);
+  // hoa văn guilloche
+  g.strokeStyle = 'rgba(70,199,160,.25)';
+  for (let i = 0; i < 14; i++) {
+    g.lineWidth = 1;
+    g.beginPath(); g.ellipse(290, 135, 250 - i * 14, 95 - i * 5, i * 0.25, 0, 7); g.stroke();
+  }
+  g.strokeStyle = 'rgba(60,156,215,.2)';
+  for (let i = 0; i < 8; i++) {
+    g.beginPath(); g.arc(60 + i * 70, 135, 90, 0, 7); g.stroke();
+  }
+  g.strokeStyle = '#3c6e5a'; g.lineWidth = 5; g.strokeRect(8, 8, 564, 254);
+  g.lineWidth = 1.5; g.strokeRect(16, 16, 548, 238);
+  // chân dung Kari (kiến xanh) trong khung oval
+  g.fillStyle = '#f5f2e8'; g.beginPath(); g.ellipse(452, 132, 74, 92, 0, 0, 7); g.fill();
+  g.strokeStyle = '#3c6e5a'; g.lineWidth = 2; g.beginPath(); g.ellipse(452, 132, 74, 92, 0, 0, 7); g.stroke();
+  g.strokeStyle = '#2d77b5'; g.lineWidth = 4; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(436, 84); g.quadraticCurveTo(424, 60, 410, 52); g.stroke(); // râu trái
+  g.beginPath(); g.moveTo(468, 84); g.quadraticCurveTo(480, 60, 494, 52); g.stroke(); // râu phải
+  g.fillStyle = '#2d77b5'; g.beginPath(); g.arc(410, 50, 6, 0, 7); g.fill(); g.beginPath(); g.arc(494, 50, 6, 0, 7); g.fill();
+  g.fillStyle = '#3a8ed0'; g.beginPath(); g.ellipse(452, 120, 40, 36, 0, 0, 7); g.fill(); // đầu
+  g.fillStyle = '#fff';
+  g.beginPath(); g.ellipse(438, 116, 12, 15, 0, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(466, 116, 12, 15, 0, 0, 7); g.fill();
+  g.fillStyle = '#123a5e';
+  g.beginPath(); g.arc(440, 119, 6, 0, 7); g.fill(); g.beginPath(); g.arc(464, 119, 6, 0, 7); g.fill();
+  g.strokeStyle = '#123a5e'; g.lineWidth = 3;
+  g.beginPath(); g.arc(452, 134, 12, 0.25, Math.PI - 0.25); g.stroke(); // cười
+  g.fillStyle = '#2d77b5'; g.beginPath(); g.ellipse(452, 180, 26, 28, 0, 0, 7); g.fill(); // thân
+  // chữ
+  g.textAlign = 'left';
+  g.fillStyle = '#21424f'; g.font = '700 19px Georgia,serif';
+  g.fillText('NGÂN HÀNG KAOPIZ', 36, 52);
+  g.font = '600 12px "Segoe UI"'; g.fillStyle = '#48626e';
+  g.fillText('KAOPIZ GINKO · GIẢI THƯỞNG TRÍ TUỆ 10 NĂM', 36, 72);
+  g.font = '900 86px Georgia,serif'; g.fillStyle = '#1d4e41';
+  g.fillText('10000', 36, 172);
+  g.font = '700 40px serif'; g.fillStyle = '#21424f';
+  g.fillText('壱万円', 40, 222);
+  g.font = '600 13px "Segoe UI"'; g.fillStyle = '#5a6e62';
+  g.fillText('YEN · CHỈ DÀNH CHO NGƯỜI GIẢI ĐƯỢC TIN ĐỒN', 36, 246);
+  g.font = '700 13px Consolas'; g.fillStyle = '#9a3b3b';
+  g.fillText('KP-2026-IQ-0001', 452 - 56, 246);
+  g.font = '800 22px "Segoe UI"'; g.fillStyle = '#1d4e41';
+  g.fillText('¥', 540, 44);
   return c;
 }
 // vệt bụi hình tròn nơi cúp từng đặt (manh mối vui ở tủ giải thưởng)

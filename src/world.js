@@ -499,6 +499,12 @@ function buildF1(m) {
   addCol(0.7, 18.4, 1.7, 19.0, y, y + 0.7);
   G.ballRackPos = new THREE.Vector3(1.2, y + 0.72, 18.7);
   plane(1.8, 0.5, basicMat(TX.signTex('GÓC GIẢI TRÍ 🏀', { size: 28, sub: 'cầm bóng lên và ném — kỷ lục được lưu' })), 2.4, y + 2.4, 19.88, Math.PI);
+  buildKari(2.6, y, 15.3, 1.5, [
+    '🐜 Kari: "Sút!!! ⚽ …là thủng lưới deadline ngay. Tập cùng tôi không?"',
+    '🐜 Kari: "Tôi là Kari — linh vật Kaopiz. Nghe đồn văn phòng có báu vật, nhưng tôi mê bóng hơn 👀"',
+    '🐜 Kari: "AI Hackathon 27/06, đăng ký chưa? Đội thắng nghe nói được chụp ảnh với TÔI 🤩"',
+    '🐜 Kari: "Kiến chăm thì deadline chạy. Kiến lười thì… thôi nói nhỏ: là tôi đó 😴"',
+  ]);
 
   // --- phòng seminar ---
   wallZ(m, 'wall', 0, 8, 11, y, WH);
@@ -643,11 +649,50 @@ function buildTV(cv, tx) {
     (gg) => { const bg = gg.createLinearGradient(0, 0, 0, 540); bg.addColorStop(0, '#091a30'); bg.addColorStop(1, '#10355c'); gg.fillStyle = bg; gg.fillRect(0, 0, 960, 540); gg.textAlign = 'center'; gg.fillStyle = '#55e8ff'; gg.font = '800 56px "Segoe UI"'; gg.fillText('KAOPIZ × AI 2030 🤖', 480, 190); gg.fillStyle = '#ffffff'; gg.font = '30px "Segoe UI"'; gg.fillText('"Mỗi Kaopizer một trợ lý AI"', 480, 270); gg.fillStyle = '#9fc6e8'; gg.font = '24px "Segoe UI"'; gg.fillText('(trợ lý AI không chỉ chỗ giấu kho báu đâu, tự tìm nhé)', 480, 340); gg.textAlign = 'left'; },
     (gg) => { gg.fillStyle = '#08251a'; gg.fillRect(0, 0, 960, 540); gg.textAlign = 'center'; gg.fillStyle = '#27e07d'; gg.font = '800 52px "Segoe UI"'; gg.fillText('⚽ KAOPIZ OPEN CUP 2026', 480, 180); gg.fillStyle = '#ffffff'; gg.font = '32px "Segoe UI"'; gg.fillText('Chúc mừng nhà VÔ ĐỊCH!', 480, 260); gg.fillStyle = '#ffd34d'; gg.font = '26px "Segoe UI"'; gg.fillText('Cúp đang được "bảo quản nghiêm ngặt" 🤫', 480, 330); gg.textAlign = 'left'; },
   ];
+  const kariCv = TX.spriteCanvas('kari');
+  if (kariCv) slides.push((gg) => {
+    const grd = gg.createLinearGradient(0, 0, 960, 0);
+    grd.addColorStop(0, '#062138'); grd.addColorStop(1, '#0d3b63');
+    gg.fillStyle = grd; gg.fillRect(0, 0, 960, 540);
+    const kw = 440 * (kariCv.width / kariCv.height);
+    gg.drawImage(kariCv, 930 - kw, 70, kw, 440);
+    gg.textAlign = 'left';
+    gg.fillStyle = '#ffd34d'; gg.font = '800 50px "Segoe UI"';
+    gg.fillText('LINH VẬT MỚI: KARI 🐜', 50, 150);
+    gg.fillStyle = '#ffffff'; gg.font = '600 28px "Segoe UI"';
+    gg.fillText('Chăm như kiến · nhanh như deploy chiều thứ 6', 50, 225);
+    gg.fillStyle = '#9fc6e8'; gg.font = '24px "Segoe UI"';
+    gg.fillText('Quy định mới: KHÔNG cho Kari uống cà phê ☕', 50, 285);
+    gg.fillText('(lần trước nó refactor cả công ty trong một đêm)', 50, 325);
+  });
   let cur = 0;
   const draw = () => { slides[cur](g); tx.needsUpdate = true; };
   draw();
   G.tvNext = () => { cur = (cur + 1) % slides.length; draw(); };
   setInterval(() => { if (G.state === 'play') { cur = (cur + 1) % slides.length; draw(); } }, 10000);
+}
+// linh vật Kari — standee ảnh thật, luôn xoay mặt về phía người chơi + nhún nhẹ
+function buildKari(x, yB, z, h, lines) {
+  const cv = TX.spriteCanvas('kari');
+  if (!cv) return;
+  const w = h * (cv.width / cv.height);
+  const mat = new THREE.MeshBasicMaterial({ map: TX.tex(cv), transparent: true, alphaTest: 0.08, side: THREE.DoubleSide });
+  const sp = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  sp.position.set(x, yB + h / 2 + 0.03, z);
+  G.scene.add(sp);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.34, 0.05, 22), MATS.steelD);
+  base.position.set(x, yB + 0.025, z);
+  base.receiveShadow = true;
+  G.scene.add(base);
+  addCol(x - 0.28, z - 0.28, x + 0.28, z + 0.28, yB, yB + 1.2);
+  G.animated.push({
+    update: (t) => {
+      if (G.camera) sp.rotation.y = Math.atan2(G.camera.position.x - x, G.camera.position.z - z);
+      sp.position.y = yB + h / 2 + 0.03 + Math.sin(t * 1.9) * 0.025;
+    },
+  });
+  let li = 0;
+  inter(x, yB + 1.1, z, 1.9, '🐜 Linh vật Kari', () => { sfx.blip && sfx.blip(); toast(lines[li++ % lines.length]); });
 }
 function buildKaoBot(x, yB, z) {
   const grp = new THREE.Group();
@@ -819,7 +864,21 @@ function buildF3(m) {
   plane(2.6, 1.7, basicMat(TX.shelfTex()), 18.6, y + 1.15, 19.86, Math.PI);
   m.box('woodDark', 18.6, y + 1.12, 19.93, 2.7, 1.8, 0.1);
   addCol(17.2, 19.78, 20.0, 20, y, y + 1.9);
-  inter(18.6, y + 1.2, 19.6, 1.7, '📚 Kệ truyện & sách', () => toast('📚 Doraemon, One Piece, Conan… và «Clean Code» còn nguyên màng bọc 😅'));
+  inter(18.6, y + 1.2, 19.6, 1.5, '📚 Kệ truyện & sách', () => toast('📚 Doraemon, One Piece, Conan… và một cuốn gì đó còn nguyên màng bọc 😅'));
+  // «Clean Code» nguyên seal — két sắt 10.000¥ cho người giải được tin đồn
+  m.box('white', 19.46, y + 1.46, 19.82, 0.07, 0.32, 0.1);
+  plane(0.09, 0.3, basicMat(TX.signTex('CLEAN CODE', { w: 90, h: 320, size: 15, bg: '#f6f4ee', fg: '#b3322e' })), 19.46, y + 1.46, 19.765, Math.PI);
+  m.box('glass', 19.46, y + 1.46, 19.8, 0.11, 0.36, 0.15);
+  inter(19.46, y + 1.46, 19.7, 1.2, '📕 Cuốn sách nguyên màng bọc', () => {
+    if (G.flags.yen) { toast('📕 «Clean Code» — đã bóc seal, 10.000¥ đã về túi bạn. Còn sách thì… vẫn chưa ai đọc 😅'); return; }
+    G.showYenFound && G.showYenFound();
+  });
+  buildKari(20.9, y, 18.5, 1.45, [
+    '🐜 Kari: "Suỵt… các sếp đang “họp”. Đừng soi màn hình của họ nha 🤫"',
+    '🐜 Kari: "Người ta cứ hỏi tôi kho báu ở đâu. Tôi là kiến chứ có phải bản đồ đâu 😤"',
+    '🐜 Kari: "Bean bag kia là chỗ ngủ trưa của tôi. Đừng giành 😴"',
+    '🐜 Kari: "Tầng này nhiều bí mật lắm. Tôi đếm được ít nhất… à mà NDA, thôi 🤐"',
+  ]);
   m.put('sofa', GEO.sph, 16.9, y + 0.3, 17.6, 0.95, 0.55, 0.95);
   addCol(16.45, 17.15, 17.35, 18.05, y, y + 0.55);
   m.put('red', GEO.sph, 18.3, y + 0.3, 17.0, 0.9, 0.52, 0.9);
