@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kaopiz Secret Office — Truy Tìm Báu Vật</title>
+<meta name="description" content="Văn phòng 3D Kaopiz — khám phá 2 tầng, giải 3 câu đố IQ, thu thập 3 chìa khóa và tìm ra báu vật bí mật.">
+<!--__FAVICON__-->
+<style>
+:root{
+  --kb:#4d9fdb; --kb2:#7cc3f2; --navy:#0b1f33; --navy2:#10304f;
+  --gold:#ffd34d; --silver:#cfd8e3; --bronze:#d8915b;
+  --glass:rgba(13,32,52,.82); --glass2:rgba(18,44,72,.9);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#06121f}
+body{font-family:'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#eaf4ff;
+  -webkit-user-select:none;user-select:none;touch-action:none}
+#app{position:fixed;inset:0}
+#app canvas{display:block}
+button{font-family:inherit;cursor:pointer}
+
+/* ===== overlays chung ===== */
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50}
+.hidden{display:none!important}
+.panel{background:var(--glass);border:1px solid rgba(124,195,242,.35);border-radius:18px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 0 60px rgba(77,159,219,.25), inset 0 0 40px rgba(77,159,219,.06);
+  padding:26px 30px;max-width:min(92vw,560px);max-height:88vh;overflow-y:auto;overflow-x:hidden}
+.panel h2{font-size:21px;margin-bottom:10px;color:var(--kb2);letter-spacing:.5px}
+.panel p{font-size:14.5px;line-height:1.65;color:#d7e8f8}
+.btn{display:inline-block;border:1px solid rgba(124,195,242,.55);color:#eaf4ff;
+  background:linear-gradient(180deg,rgba(77,159,219,.35),rgba(77,159,219,.12));
+  padding:11px 22px;border-radius:12px;font-size:15px;font-weight:600;letter-spacing:.4px;
+  transition:transform .12s, box-shadow .12s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(77,159,219,.5)}
+.btn.primary{background:linear-gradient(180deg,#4d9fdb,#2c6ea6);border-color:#7cc3f2}
+.btn.ghost{background:transparent;opacity:.85}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:none}
+
+/* ===== intro ===== */
+#intro{background:radial-gradient(900px 600px at 50% 28%, rgba(77,159,219,.18), transparent 60%), #050e19;
+  flex-direction:column;text-align:center;z-index:100}
+#intro .logoWrap{margin-bottom:8px;filter:drop-shadow(0 0 26px rgba(77,159,219,.55))}
+#intro .logoWrap svg,#intro .logoWrap canvas{width:min(430px,74vw);height:auto;display:block}
+#intro h1{font-size:clamp(22px,4.4vw,40px);letter-spacing:3px;color:#fff;text-transform:uppercase;
+  text-shadow:0 0 30px rgba(77,159,219,.8);margin:6px 0 2px}
+#intro .sub{color:var(--kb2);font-size:clamp(12px,2vw,15px);letter-spacing:6px;text-transform:uppercase;margin-bottom:18px}
+#intro .story{max-width:min(90vw,620px);background:var(--glass);border:1px solid rgba(124,195,242,.3);
+  border-radius:16px;padding:18px 22px;font-size:14.5px;line-height:1.75;color:#d7e8f8;margin-bottom:18px}
+#intro .story b{color:var(--gold)}
+#intro .keysRow{display:flex;gap:18px;justify-content:center;margin:10px 0 16px;font-size:13px}
+#intro .keysRow span{display:flex;align-items:center;gap:6px;opacity:.9}
+#intro .ctl{font-size:12.5px;color:#9fc6e8;margin-top:14px;line-height:1.8}
+#intro .vstamp{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:#3b6f9d;pointer-events:none}
+
+/* ===== HUD ===== */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:30}
+#hudTop{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.chip{pointer-events:auto;background:var(--glass);border:1px solid rgba(124,195,242,.35);
+  border-radius:12px;padding:7px 12px;font-size:13px;display:flex;align-items:center;gap:8px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#keysChip .k{font-size:17px;filter:grayscale(1);opacity:.32;transition:all .4s}
+#keysChip .k.got{filter:none;opacity:1;text-shadow:0 0 12px rgba(255,211,77,.9)}
+#floorChip b{color:var(--kb2)}
+#timerChip{font-variant-numeric:tabular-nums}
+#hudBtns{display:flex;gap:6px}
+.iconBtn{pointer-events:auto;width:38px;height:38px;border-radius:11px;border:1px solid rgba(124,195,242,.4);
+  background:var(--glass);color:#eaf4ff;font-size:17px;display:flex;align-items:center;justify-content:center}
+#objective{position:absolute;top:56px;left:10px;max-width:min(72vw,330px);pointer-events:none;
+  background:rgba(8,20,34,.6);border-left:3px solid var(--kb);border-radius:8px;padding:8px 12px;
+  font-size:12.5px;color:#cfe6fa;line-height:1.5}
+#crosshair{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;
+  transform:translate(-50%,-50%);background:rgba(255,255,255,.85);box-shadow:0 0 8px rgba(77,159,219,.9)}
+#prompt{position:absolute;left:50%;top:58%;transform:translateX(-50%);background:var(--glass2);
+  border:1px solid rgba(124,195,242,.5);border-radius:12px;padding:9px 16px;font-size:14px;
+  box-shadow:0 0 24px rgba(77,159,219,.35);white-space:nowrap;max-width:92vw}
+#prompt b{color:var(--gold)}
+#toast{position:absolute;left:50%;bottom:18%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;width:100%;pointer-events:none}
+.toastMsg{background:var(--glass2);border:1px solid rgba(124,195,242,.45);border-radius:12px;
+  padding:10px 18px;font-size:14px;max-width:min(88vw,480px);text-align:center;line-height:1.5;
+  animation:tIn .3s ease;box-shadow:0 4px 30px rgba(0,0,0,.45)}
+@keyframes tIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.toastMsg.out{opacity:0;transform:translateY(-8px);transition:all .4s}
+
+/* ===== mobile controls ===== */
+#joyL{position:fixed;left:0;bottom:0;width:46vw;height:46vh;z-index:40;pointer-events:auto}
+#joyKnobBase{position:absolute;width:104px;height:104px;border-radius:50%;border:2px solid rgba(124,195,242,.5);
+  background:rgba(13,32,52,.45);display:none}
+#joyKnob{position:absolute;width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7cc3f2,#2c6ea6);
+  box-shadow:0 0 16px rgba(77,159,219,.7);display:none}
+#lookPad{position:fixed;right:0;bottom:0;width:54vw;height:64vh;z-index:39;pointer-events:auto}
+#mobBtns{position:fixed;right:14px;bottom:18px;display:flex;flex-direction:column;gap:12px;z-index:41}
+.mobBtn{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(124,195,242,.55);
+  background:var(--glass2);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 18px rgba(0,0,0,.4);pointer-events:auto}
+.mobBtn:active{background:rgba(77,159,219,.5)}
+.mobBtn small{font-size:9px;display:block}
+body:not(.touch) #joyL, body:not(.touch) #lookPad, body:not(.touch) #mobBtns{display:none}
+
+/* ===== dialog / câu đố ===== */
+#dialog .paper{background:#fdf7e3;color:#473a22;border-radius:6px;padding:16px 18px;font-size:14.5px;
+  line-height:1.7;box-shadow:0 6px 24px rgba(0,0,0,.5);transform:rotate(-.6deg);font-family:Georgia,'Times New Roman',serif}
+.numIn{display:flex;gap:10px;justify-content:center;margin:14px 0}
+.numIn input{width:100%;max-width:240px;background:#06121f;border:1px solid rgba(124,195,242,.5);color:#fff;
+  border-radius:10px;font-size:20px;text-align:center;padding:10px;letter-spacing:3px;outline:none;font-variant-numeric:tabular-nums}
+.dials{display:flex;gap:14px;justify-content:center;margin:16px 0}
+.dial{display:flex;flex-direction:column;align-items:center;gap:6px}
+.dial button{width:44px;height:34px;border-radius:8px;border:1px solid rgba(124,195,242,.5);background:rgba(77,159,219,.18);color:#fff;font-size:16px}
+.dial .dv{width:52px;height:60px;border-radius:10px;background:#04101d;border:1px solid var(--kb);
+  display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:var(--gold);
+  text-shadow:0 0 14px rgba(255,211,77,.6);font-variant-numeric:tabular-nums}
+.clueList{margin:10px 0;font-size:14px;line-height:1.9;color:#ffe9b8;font-variant-numeric:tabular-nums}
+.clueList b{color:#fff;letter-spacing:4px;font-size:16px}
+.matrixGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;justify-items:center;margin:12px auto;width:min(78vw,300px)}
+.matrixGrid canvas{background:#fff;border-radius:8px;width:100%;height:auto}
+.optGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;justify-items:center;margin:10px auto 4px;width:min(78vw,300px)}
+.optGrid canvas{background:#fff;border-radius:8px;border:2px solid transparent;cursor:pointer;width:100%;height:auto;transition:all .15s}
+.optGrid canvas:hover{border-color:var(--kb2)}
+.optGrid canvas.sel{border-color:var(--gold);box-shadow:0 0 16px rgba(255,211,77,.5)}
+.dlgErr{color:#ff9d9d;font-size:13px;text-align:center;min-height:18px;margin-top:6px}
+.dlgRow{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.seqShow{font-size:clamp(15px,3.2vw,22px);letter-spacing:2px;text-align:center;color:#bfe3ff;
+  font-family:'Consolas','Courier New',monospace;margin:12px 0;line-height:1.8}
+.seqShow b{color:var(--gold)}
+
+/* ===== màn thắng ===== */
+#winOv{background:rgba(3,10,18,.55);z-index:60;flex-direction:column}
+#winOv .wPanel{text-align:center;background:linear-gradient(180deg,rgba(10,26,44,.93),rgba(6,16,28,.95));
+  border:1px solid rgba(255,211,77,.5);box-shadow:0 0 80px rgba(255,211,77,.25);border-radius:20px;
+  padding:30px 34px;max-width:min(92vw,560px);max-height:90vh;overflow-y:auto}
+#winPhotos{margin-top:12px}
+#winPhotosCap{font-size:13px;color:var(--kb2);margin-bottom:8px}
+#winPhotosRow{display:flex;gap:10px;justify-content:center;align-items:flex-start}
+#winPhotosRow figure{margin:0;width:min(47%,250px)}
+#winPhotosRow img{width:100%;display:block;border-radius:10px;border:1px solid rgba(124,195,242,.45)}
+#winPhotosRow figcaption{font-size:10.5px;color:#9fc6e8;margin-top:4px;line-height:1.45}
+#winOv h1{font-size:clamp(22px,5vw,34px);color:var(--gold);text-shadow:0 0 30px rgba(255,211,77,.7);letter-spacing:2px;margin-bottom:6px}
+#winOv h3{color:#fff;font-weight:600;margin-bottom:12px;font-size:clamp(14px,3vw,18px)}
+#winOv p{color:#d7e8f8;font-size:14px;line-height:1.7}
+#winTime{font-size:20px;color:var(--kb2);margin:10px 0;font-variant-numeric:tabular-nums}
+
+/* ===== mini game snake ===== */
+#snakeOv{z-index:55}
+#snakeWrap{text-align:center}
+#snakeCv{background:#03101c;border:2px solid var(--kb);border-radius:10px;box-shadow:0 0 40px rgba(77,159,219,.4);
+  touch-action:none;max-width:88vw;max-height:60vh}
+#snakeInfo{font-size:13px;color:#9fc6e8;margin:8px 0}
+
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .45s;z-index:70}
+#hintBadge{position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:#ffd34d;
+  box-shadow:0 0 10px #ffd34d;display:none}
+#pauseOv{z-index:45;background:rgba(4,10,18,.5);backdrop-filter:blur(4px)}
+.kbd{display:inline-block;border:1px solid #5d89ad;border-bottom-width:3px;border-radius:6px;padding:1px 7px;
+  font-size:12px;background:#0d2438;color:#cfe6fa;font-family:Consolas,monospace}
+#loadBar{width:min(70vw,320px);height:6px;border-radius:4px;background:#0d2438;overflow:hidden;margin-top:18px}
+#loadBar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,#2c6ea6,#7cc3f2);transition:width .3s}
+@media (max-height:560px){ .panel{padding:16px 18px} #intro .story{font-size:13px;padding:12px 14px} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="hudTop">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div class="chip" id="keysChip" title="Chìa khóa đã thu thập">
+        <span class="k" id="kV">🗝️<small>V</small></span>
+        <span class="k" id="kB">🗝️<small>B</small></span>
+        <span class="k" id="kD">🗝️<small>Đ</small></span>
+      </div>
+      <div class="chip" id="floorChip">📍 <b id="floorName">Tầng 1</b></div>
+      <div class="chip" id="timerChip">⏱ <span id="timerVal">00:00</span></div>
+    </div>
+    <div id="hudBtns">
+      <button class="iconBtn" id="btnHint" title="Gợi ý" style="position:relative">💡<span id="hintBadge"></span></button>
+      <button class="iconBtn" id="btnSound" title="Âm thanh">🔊</button>
+      <button class="iconBtn" id="btnQuality" title="Đổi chất lượng đồ hoạ (Thấp / Vừa / Cao)" style="width:auto;padding:0 12px;font-size:13px;font-weight:600;white-space:nowrap">🎨 Thấp</button>
+      <button class="iconBtn" id="btnMenu" title="Tạm dừng">☰</button>
+    </div>
+  </div>
+  <div id="objective">Tin đồn: một <b style="color:#ffd34d">báu vật vô cùng quý giá</b> đang bị giấu trong văn phòng. Tìm <b>3 chìa khóa</b> Vàng – Bạc – Đồng bằng cách giải 3 thử thách IQ ẩn đâu đó trong 2 tầng…</div>
+  <div id="crosshair"></div>
+  <div id="prompt" class="hidden"></div>
+  <div id="toast"></div>
+</div>
+
+<!-- mobile -->
+<div id="joyL"><div id="joyKnobBase"></div><div id="joyKnob"></div></div>
+<div id="lookPad"></div>
+<div id="mobBtns">
+  <button class="mobBtn" id="btnRun">🏃</button>
+  <button class="mobBtn" id="btnUse">👆</button>
+</div>
+
+<!-- intro -->
+<div id="intro" class="ov">
+  <div style="position:relative;max-width:94vw;display:flex;flex-direction:column;align-items:center">
+    <div class="logoWrap" id="introLogo"><!--__LOGO_SVG__--></div>
+    <h1>Kaopiz Secret Office</h1>
+    <div class="sub">— Truy tìm báu vật · 10 năm Kaopiz —</div>
+    <div class="story">
+      Có tin đồn rằng đâu đó trong văn phòng Kaopiz đang cất giấu <b>một thứ vô cùng quý giá</b>.
+      Nó nằm sau một cánh cửa thép bí mật với <b>3 ổ khóa: VÀNG – BẠC – ĐỒNG</b>.<br>
+      Muốn mở nó, bạn phải lùng sục cả 2 tầng văn phòng, tìm ra <b>3 thử thách IQ</b> đang ẩn mình
+      và giải chúng để thu thập đủ 3 chìa khóa.<br>
+      <span style="opacity:.85">Không ai biết bên trong là gì. Chỉ biết… nó xứng đáng. 👀</span>
+    </div>
+    <div class="keysRow"><span>🥇 Chìa Vàng</span><span>🥈 Chìa Bạc</span><span>🥉 Chìa Đồng</span></div>
+    <div>
+      <button class="btn primary" id="btnStart" disabled>Đang tải…</button>
+      <button class="btn ghost hidden" id="btnContinue">Tiếp tục lần trước</button>
+    </div>
+    <div id="loadBar"><i id="loadFill"></i></div>
+    <div class="ctl" id="ctlDesk">
+      Di chuyển <span class="kbd">W</span><span class="kbd">A</span><span class="kbd">S</span><span class="kbd">D</span>
+      · Nhìn: chuột · Chạy <span class="kbd">Shift</span> · Tương tác <span class="kbd">E</span> / chuột trái<br>
+      <span class="kbd">H</span> gợi ý · <span class="kbd">M</span> âm thanh · <span class="kbd">Esc</span> mở con trỏ để bấm các nút góc phải
+    </div>
+    <div class="ctl hidden" id="ctlTouch">Joystick trái: di chuyển · Vuốt phải: nhìn · Nút 👆 : tương tác</div>
+    <div class="ctl" style="margin-top:6px;opacity:.8">Đồ hoạ đang ở mức <b>THẤP</b> để máy nào cũng mượt — máy khoẻ thì bấm nút <b>🎨</b> trong game để tăng độ đẹp.</div>
+  </div>
+  <div class="vstamp">Kaopiz Inc. · made with ❤ for 10 năm</div>
+</div>
+
+<!-- pause -->
+<div id="pauseOv" class="ov hidden">
+  <div class="panel" style="text-align:center">
+    <h2>⏸ Tạm dừng</h2>
+    <p>Báu vật vẫn đang chờ bạn…</p>
+    <div class="dlgRow">
+      <button class="btn primary" id="btnResume">Tiếp tục</button>
+      <button class="btn ghost" id="btnReset">Chơi lại từ đầu</button>
+    </div>
+  </div>
+</div>
+
+<!-- dialog chung -->
+<div id="dialog" class="ov hidden"><div class="panel" id="dlgPanel"></div></div>
+
+<!-- snake -->
+<div id="snakeOv" class="ov hidden">
+  <div id="snakeWrap" class="panel">
+    <h2>🐍 KAO·SNAKE</h2>
+    <div id="snakeInfo">Ăn logo Kaopiz để ghi điểm — đừng cắn trúng mình!</div>
+    <canvas id="snakeCv" width="420" height="300"></canvas>
+    <div id="snakeScore" style="margin-top:8px;font-size:14px">Điểm: 0 · Kỷ lục: 0</div>
+    <div class="dlgRow">
+      <button class="btn primary" id="snakeStart">Chơi</button>
+      <button class="btn ghost" id="snakeExit">Rời máy</button>
+    </div>
+    <div style="font-size:11.5px;color:#7fa9cc;margin-top:8px">Phím mũi tên / vuốt để điều khiển</div>
+  </div>
+</div>
+
+<!-- win -->
+<div id="winOv" class="ov hidden">
+  <div class="wPanel">
+    <h1>🏆 VÔ ĐỊCH!</h1>
+    <h3 id="winSub">Báu vật lộ diện: CÚP VÔ ĐỊCH KAOPIZ OPEN CUP 2026</h3>
+    <p>Bạn đã giải cả 3 thử thách IQ và tìm ra căn phòng bí mật.<br>
+    Chiếc cúp danh giá nhất lịch sử Kaopiz — cùng tấm bảng <b style="color:#ffd34d">VÔ ĐỊCH</b> huyền thoại — là của bạn (tạm thời 😄).</p>
+    <div id="winTime">⏱ --:--</div>
+    <div id="winPhotos" class="hidden">
+      <div id="winPhotosCap">📸 Và đây là “kho báu” ngoài đời thực — góc giải thưởng tầng 3:</div>
+      <div id="winPhotosRow"></div>
+    </div>
+    <div class="dlgRow">
+      <button class="btn primary" id="btnStay">Ở lại ngắm cúp</button>
+      <button class="btn ghost" id="btnReplay">Chơi lại</button>
+    </div>
+  </div>
+</div>
+
+<div id="fade"></div>
+<script>
+/*__BUNDLE__*/
+</script>
+</body>
+</html>
