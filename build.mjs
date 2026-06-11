@@ -20,7 +20,42 @@ if (existsSync('assets/logo.svg')) {
     break;
   }
 }
-writeFileSync('src/logodata.js', '// File tự sinh bởi build.mjs — đừng sửa tay\n' + logoLine);
+// ---- Icon K (favicon.svg) — dùng ghép logo 10 năm khi chưa có file gốc
+let markLine = 'export const MARK_B64 = null;\n';
+if (existsSync('assets/favicon.svg')) {
+  const msvg = readFileSync('assets/favicon.svg', 'utf8').trim();
+  markLine = `export const MARK_B64 = ${JSON.stringify('data:image/svg+xml,' + encodeURIComponent(msvg).replace(/'/g, '%27'))};\n`;
+}
+// ---- Logo 10 năm gốc (nếu được cung cấp) — build tự nhúng, game tự ưu tiên dùng
+let logo10Line = 'export const LOGO10_B64 = null;\n';
+for (const f of ['assets/logo/logo 10 nam.svg', 'assets/logo/logo 10 năm.svg', 'assets/logo10.svg',
+  'assets/logo/logo 10 nam.png', 'assets/logo/logo 10 năm.png', 'assets/logo10.png']) {
+  if (!existsSync(f)) continue;
+  if (f.endsWith('.svg')) {
+    const s = readFileSync(f, 'utf8').trim();
+    logo10Line = `export const LOGO10_B64 = ${JSON.stringify('data:image/svg+xml,' + encodeURIComponent(s).replace(/'/g, '%27'))};\n`;
+  } else {
+    logo10Line = `export const LOGO10_B64 = 'data:image/png;base64,${readFileSync(f).toString('base64')}';\n`;
+  }
+  console.log('logo 10 năm gốc:', f);
+  break;
+}
+writeFileSync('src/logodata.js',
+  '// File tự sinh bởi build.mjs — đừng sửa tay\n' + logoLine + markLine + logo10Line);
+
+// ---- Poster ảnh thật (assets/posters/*) → texture trong game
+const posters = {};
+if (existsSync('assets/posters')) {
+  for (const f of readdirSync('assets/posters').sort()) {
+    const ext = f.slice(f.lastIndexOf('.')).toLowerCase();
+    const mime = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' }[ext];
+    if (!mime) continue;
+    const key = f.slice(0, f.lastIndexOf('.'));
+    posters[key] = `data:${mime};base64,${readFileSync(`assets/posters/${f}`).toString('base64')}`;
+  }
+  console.log('poster thật:', Object.keys(posters).join(', ') || '(không có)');
+}
+writeFileSync('src/posterdata.js', '// File tự sinh bởi build.mjs — đừng sửa tay\nexport const POSTER_B64 = ' + JSON.stringify(posters) + ';\n');
 
 // ---- Ảnh thật văn phòng (assets/photos/*) → hiện ở màn hình thắng cuộc
 const CAPS = {
